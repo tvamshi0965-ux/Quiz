@@ -91,6 +91,13 @@ body {
   overflow-x: hidden;
 }
 
+/* Make images and svgs scale inside their containers */
+img, svg, picture {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
 /* ── App shell ──────────────────────────────────────────────── */
 .et-shell {
   display: flex;
@@ -126,6 +133,8 @@ body {
     background: var(--clr-ink, #161C26);
     z-index: 100;
     padding: 0 !important;
+    /* respect device safe-area (notches) */
+    padding-bottom: env(safe-area-inset-bottom, 0);
   }
 
   .et-sidebar-logo { display: none !important; }
@@ -150,6 +159,7 @@ body {
     justify-content: center;
     font-size: 9px !important;
     min-width: 0;
+    min-height: 44px; /* ensure touch-friendly targets */
   }
 
   .et-sidebar-nav-item.active {
@@ -183,7 +193,7 @@ body {
 /* Extra bottom padding on mobile to clear fixed bottom nav */
 @media (max-width: 639px) {
   .et-main {
-    padding-bottom: 70px;
+    padding-bottom: calc(70px + env(safe-area-inset-bottom, 0));
   }
 }
 
