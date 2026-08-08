@@ -3136,20 +3136,20 @@ function AuthForm({ mode, busy, error, onSubmit, onSwitch }) {
           marginBottom: 4,
         }}
       >
-        {isRegister ? "Create your account" : "Welcome back"}
+        {isRegister ? "Create your account" : ""}
       </div>
-      <p style={{ color: COLORS.paperDim, fontSize: 13, marginBottom: 20 }}>
-        {isRegister
-          ? "Register to start your rounds and track your scores."
-          : "Log in to continue where you left off."}
-      </p>
+      {isRegister && (
+        <p style={{ color: COLORS.paperDim, fontSize: 13, marginBottom: 20 }}>
+          Register to start your rounds and track your scores.
+        </p>
+      )}
 
       <div onSubmit={handleSubmit}>
-        <FieldLabel text="Username" />
+        <FieldLabel text="Enter Your Name" />
         <input
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          placeholder="e.g. vamshi_k"
+          placeholder="Enter Your Name"
           style={inputStyle}
           autoCapitalize="none"
         />
