@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import './responsive.css'
-import App from '../App.jsx'
+import App from '../app.jsx'
 
 // ── window.storage polyfill (browser localStorage) ──────────────────────────
 // The App uses window.storage.get/set/delete/list (Kiro IDE storage API).
