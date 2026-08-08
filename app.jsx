@@ -2434,8 +2434,10 @@ export default function QuizApp() {
   const [answers, setAnswers] = useState({});
   const [submissions, setSubmissions] = useState({});
   const [leaderboard, setLeaderboard] = useState([]);
+  const [onlineUsers, setOnlineUsers] = useState({});
   const [now, setNow] = useState(Date.now());
   const tickRef = useRef(null);
+  const presenceRef = useRef(null);
 
   // Restore session (device-level) and re-attach to the account on load.
   useEffect(() => {
@@ -2511,6 +2513,10 @@ export default function QuizApp() {
     await set("session", { username: uname }, false);
     setAuthBusy(false);
     setCurrentUser(uname);
+    // mark presence for this device/account
+    try {
+      await set(`presence:${uname}`, { lastSeen: Date.now() }, true);
+    } catch {}
     setView("home");
   };
 
@@ -2531,10 +2537,18 @@ export default function QuizApp() {
     await set("session", { username: uname }, false);
     setAuthBusy(false);
     setCurrentUser(uname);
+    // mark presence for this device/account
+    try {
+      await set(`presence:${uname}`, { lastSeen: Date.now() }, true);
+    } catch {}
     setView("home");
   };
 
   const logout = async () => {
+    // clear session and presence for this device/account
+    try {
+      if (currentUser) await del(`presence:${currentUser}`, true);
+    } catch {}
     await del("session", false);
     setCurrentUser(null);
     setSubmissions({});
@@ -2615,6 +2629,24 @@ export default function QuizApp() {
     loadLeaderboard();
   };
 
+  const loadPresence = async () => {
+    try {
+      const listing = await window.storage.list("presence:", true);
+      if (!listing || !listing.keys) {
+        setOnlineUsers({});
+        return;
+      }
+      const m = {};
+      for (const key of listing.keys) {
+        try {
+          const r = await get(key, true);
+          if (r) m[key.slice("presence:".length)] = r.lastSeen || r;
+        } catch {}
+      }
+      setOnlineUsers(m);
+    } catch {}
+  };
+
   const loadLeaderboard = async () => {
     try {
       const listing = await window.storage.list("leaderboard:", true);
@@ -2626,13 +2658,66 @@ export default function QuizApp() {
       }
       rows.sort((a, b) => b.pct - a.pct || b.totalCorrect - a.totalCorrect);
       setLeaderboard(rows);
+      // refresh presence map when loading leaderboard
+      loadPresence();
     } catch {}
   };
+
+  useEffect(() => {
+    // while viewing leaderboard, poll presence list so UI stays fresh
+    if (view === "leaderboard") {
+      loadPresence();
+      const id = setInterval(loadPresence, 15000);
+      return () => clearInterval(id);
+    }
+  }, [view]);
 
   useEffect(() => {
     if (view === "leaderboard" || view === "profile" || view === "result")
       loadLeaderboard();
   }, [view]);
+
+  // presence heartbeat for the signed-in user
+  useEffect(() => {
+    if (!currentUser) {
+      if (presenceRef.current) {
+        clearInterval(presenceRef.current);
+        presenceRef.current = null;
+      }
+      return;
+    }
+
+    const beat = async () => {
+      try {
+        await set(`presence:${currentUser}`, { lastSeen: Date.now() }, true);
+      } catch {}
+    };
+
+    // initial mark and periodic heartbeat
+    beat();
+    presenceRef.current = setInterval(beat, 30000);
+
+    const onUnload = async () => {
+      try {
+        await del(`presence:${currentUser}`, true);
+      } catch {}
+    };
+    window.addEventListener("beforeunload", onUnload);
+
+    return () => {
+      if (presenceRef.current) {
+        clearInterval(presenceRef.current);
+        presenceRef.current = null;
+      }
+      window.removeEventListener("beforeunload", onUnload);
+      // clear presence when this component unmounts / user switches
+      (async () => {
+        try {
+          await del(`presence:${currentUser}`, true);
+        } catch {}
+      })();
+    };
+  }, [currentUser]);
 
   if (!authChecked) {
     return (
@@ -2890,6 +2975,7 @@ export default function QuizApp() {
             <Leaderboard
               leaderboard={leaderboard}
               currentUser={currentUser}
+              onlineUsers={onlineUsers}
               onGoExams={() => setView("home")}
             />
           )}
@@ -3715,7 +3801,7 @@ function StatChip({ label, value, color }) {
 
 const RANK_MEDAL = { 1: "#E8C34A", 2: "#C7CDD6", 3: "#C98A4B" };
 
-function Leaderboard({ leaderboard, currentUser, onGoExams }) {
+function Leaderboard({ leaderboard, currentUser, onlineUsers = {}, onGoExams }) {
   return (
     <div>
       <div
@@ -3763,6 +3849,53 @@ function Leaderboard({ leaderboard, currentUser, onGoExams }) {
         </div>
       ) : (
         <div style={{ display: "grid", gap: 8 }}>
+          {/* Currently online users summary */}
+          {Object.keys(onlineUsers).length > 0 && (
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                alignItems: "center",
+                marginBottom: 6,
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ fontSize: 12, color: COLORS.paperDim }}>Online:</div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {Object.keys(onlineUsers).map((u) => {
+                  const last = onlineUsers[u];
+                  const isNow = Date.now() - (last || 0) < 90 * 1000;
+                  return (
+                    <div
+                      key={u}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        padding: "4px 8px",
+                        background: isNow ? "rgba(63,143,99,0.08)" : "transparent",
+                        border: `1px solid ${isNow ? COLORS.green : COLORS.line}`,
+                        borderRadius: 999,
+                        fontSize: 12,
+                        color: isNow ? COLORS.green : COLORS.paperDim,
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: "50%",
+                          background: isNow ? COLORS.green : COLORS.paperDim,
+                          flexShrink: 0,
+                        }}
+                      />
+                      <div style={{ fontFamily: "'JetBrains Mono', monospace" }}>{u}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           {leaderboard.map((row, i) => {
             const rank = i + 1;
             const isMe = row.username === currentUser;
