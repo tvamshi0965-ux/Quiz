@@ -1,0 +1,494 @@
+/* ================================================================
+   EDU TECH — Responsive / Adjustable Layout
+   Breakpoints:
+     mobile  : < 480px
+     sm      : 480px – 639px
+     md      : 640px – 959px   (sidebar collapses to icon rail)
+     lg      : ≥ 960px         (full sidebar)
+   ================================================================ */
+
+/* ── CSS Custom Properties ──────────────────────────────────── */
+:root {
+  /* Sidebar */
+  --sidebar-w: 216px;
+  --sidebar-icon-w: 68px;
+
+  /* Content */
+  --content-max: 720px;
+  --content-px: 32px;
+  --content-py: 32px;
+
+  /* Auth card */
+  --auth-max: 420px;
+
+  /* Cards */
+  --card-radius: 8px;
+  --card-pad: 20px;
+
+  /* Gaps */
+  --gap-sm: 8px;
+  --gap-md: 14px;
+  --gap-lg: 20px;
+
+  /* Typography */
+  --fs-xs: 10px;
+  --fs-sm: 12px;
+  --fs-base: 14px;
+  --fs-md: 16px;
+  --fs-lg: 20px;
+  --fs-xl: 24px;
+  --fs-2xl: 32px;
+
+  /* Score circle */
+  --score-circle-sz: 160px;
+  --score-circle-fs: 36px;
+
+  /* Pie chart */
+  --pie-sz: 168px;
+}
+
+/* Tablet (md) ─── 640-959px */
+@media (max-width: 959px) {
+  :root {
+    --sidebar-w: var(--sidebar-icon-w);
+    --content-px: 20px;
+    --content-py: 24px;
+    --content-max: 100%;
+    --card-pad: 16px;
+    --fs-xl: 20px;
+    --fs-2xl: 26px;
+    --score-circle-sz: 130px;
+    --score-circle-fs: 28px;
+    --pie-sz: 148px;
+  }
+}
+
+/* Mobile (sm/xs) ─── < 640px */
+@media (max-width: 639px) {
+  :root {
+    --sidebar-w: 0px;
+    --content-px: 14px;
+    --content-py: 16px;
+    --card-pad: 14px;
+    --gap-md: 10px;
+    --gap-lg: 14px;
+    --fs-base: 13px;
+    --fs-md: 15px;
+    --fs-lg: 18px;
+    --fs-xl: 18px;
+    --fs-2xl: 22px;
+    --score-circle-sz: 110px;
+    --score-circle-fs: 22px;
+    --pie-sz: 140px;
+  }
+}
+
+/* ── Global resets ──────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+}
+
+/* ── App shell ──────────────────────────────────────────────── */
+.et-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── Sidebar ────────────────────────────────────────────────── */
+.et-sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  transition: width 0.2s ease;
+  overflow: hidden;
+  position: relative;
+  z-index: 50;
+}
+
+/* On mobile: sidebar becomes bottom navigation bar */
+@media (max-width: 639px) {
+  .et-sidebar {
+    width: 100%;
+    min-height: unset;
+    height: 58px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    flex-direction: row;
+    border-right: none !important;
+    border-top: 1px solid var(--clr-line, #323C4C);
+    background: var(--clr-ink, #161C26);
+    z-index: 100;
+    padding: 0 !important;
+  }
+
+  .et-sidebar-logo { display: none !important; }
+
+  .et-sidebar-nav {
+    flex: 1;
+    flex-direction: row !important;
+    gap: 0 !important;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 4px;
+  }
+
+  .et-sidebar-nav-item {
+    flex: 1;
+    flex-direction: column !important;
+    gap: 2px !important;
+    padding: 6px 4px !important;
+    border-left: none !important;
+    border-top: 2px solid transparent;
+    border-radius: 0 !important;
+    justify-content: center;
+    font-size: 9px !important;
+    min-width: 0;
+  }
+
+  .et-sidebar-nav-item.active {
+    border-top-color: var(--clr-amber, #D9A441);
+    border-left: none !important;
+  }
+
+  .et-sidebar-nav-item span.label { display: block !important; }
+
+  .et-sidebar-footer { display: none !important; }
+}
+
+/* Tablet: icon-only rail */
+@media (min-width: 640px) and (max-width: 959px) {
+  .et-sidebar-logo-text { display: none; }
+  .et-sidebar-nav-item span.label { display: none; }
+  .et-sidebar-footer-username { display: none; }
+}
+
+/* Collapsed icon rail (tablet) label hidden via CSS above */
+.et-sidebar-nav-item span.label {
+  display: inline;
+}
+
+/* ── Main content area ──────────────────────────────────────── */
+.et-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Extra bottom padding on mobile to clear fixed bottom nav */
+@media (max-width: 639px) {
+  .et-main {
+    padding-bottom: 70px;
+  }
+}
+
+.et-content {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--content-py) var(--content-px) 64px;
+}
+
+/* ── Auth page ──────────────────────────────────────────────── */
+.et-auth-wrap {
+  max-width: var(--auth-max);
+  margin: 0 auto;
+  padding: 40px var(--content-px);
+}
+
+@media (max-width: 479px) {
+  .et-auth-wrap {
+    padding: 24px var(--content-px);
+  }
+  .et-auth-logo {
+    width: 64px !important;
+    height: 64px !important;
+  }
+  .et-auth-logo img {
+    width: 50px !important;
+  }
+}
+
+/* ── Cards ──────────────────────────────────────────────────── */
+.et-card {
+  border-radius: var(--card-radius);
+  padding: var(--card-pad);
+}
+
+/* ── Quiz view ──────────────────────────────────────────────── */
+.et-quiz-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.et-choices {
+  display: grid;
+  gap: 10px;
+}
+
+.et-quiz-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 479px) {
+  .et-quiz-nav {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+  .et-quiz-nav button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Code block — always scrollable, never overflows */
+.et-code-block {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.et-code-block pre {
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
+  min-width: min-content;
+}
+
+/* ── Result page ────────────────────────────────────────────── */
+.et-score-card {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.et-score-circle {
+  width: var(--score-circle-sz);
+  height: var(--score-circle-sz);
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.et-score-pct {
+  font-size: var(--score-circle-fs);
+}
+
+.et-result-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  justify-content: center;
+}
+
+/* Timeline — single column on mobile, alternating on wider */
+.et-timeline {
+  position: relative;
+}
+
+.et-timeline-spine {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  transform: translateX(-50%);
+}
+
+.et-timeline-row {
+  display: flex;
+  width: 100%;
+}
+
+.et-timeline-row.left  { justify-content: flex-start; }
+.et-timeline-row.right { justify-content: flex-end; }
+
+.et-timeline-card {
+  width: 82%;
+  max-width: 480px;
+  position: relative;
+}
+
+.et-timeline-dot {
+  position: absolute;
+  top: 16px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.et-timeline-row.left  .et-timeline-dot { right: -19px; }
+.et-timeline-row.right .et-timeline-dot { left: -19px; }
+
+/* On mobile: single column, no zigzag */
+@media (max-width: 639px) {
+  .et-timeline-spine { display: none; }
+  .et-timeline-row.left,
+  .et-timeline-row.right { justify-content: center; }
+  .et-timeline-card { width: 100%; max-width: 100%; }
+  .et-timeline-dot { display: none; }
+}
+
+/* ── Profile ────────────────────────────────────────────────── */
+.et-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.et-stat-chips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 479px) {
+  .et-stat-chips {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.et-pie-wrap {
+  position: relative;
+  width: var(--pie-sz);
+  height: var(--pie-sz);
+  flex-shrink: 0;
+}
+
+.et-score-breakdown {
+  display: flex;
+  gap: var(--gap-md);
+  flex-wrap: wrap;
+  margin: 14px 0;
+}
+
+.et-score-card-inner {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+/* ── Home / exam cards ──────────────────────────────────────── */
+.et-exam-cards {
+  display: grid;
+  gap: 16px;
+}
+
+/* ── Daily menu ─────────────────────────────────────────────── */
+.et-daily-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* ── Leaderboard ────────────────────────────────────────────── */
+.et-lb-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.et-lb-username {
+  flex: 1;
+  min-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Buttons ────────────────────────────────────────────────── */
+.et-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 5px;
+  font-size: var(--fs-base);
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+
+.et-btn:disabled { opacity: 0.45; cursor: default; }
+
+/* ── Answer key ─────────────────────────────────────────────── */
+.et-key-choices {
+  margin-top: 10px;
+  font-size: var(--fs-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* ── Input fields ───────────────────────────────────────────── */
+.et-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  font-size: var(--fs-base);
+  border-radius: 6px;
+  font-family: inherit;
+  margin-bottom: 16px;
+  outline: none;
+}
+
+/* ── Utility helpers ────────────────────────────────────────── */
+.et-section-label {
+  font-size: var(--fs-xs);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.et-mono {
+  font-family: 'JetBrains Mono', 'Fira Mono', monospace;
+}
+
+.et-serif {
+  font-family: 'Spectral', Georgia, serif;
+}
+
+/* Scrollable containers */
+.et-scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Gap utilities */
+.et-gap-sm  { gap: var(--gap-sm); }
+.et-gap-md  { gap: var(--gap-md); }
+.et-gap-lg  { gap: var(--gap-lg); }
+
+/* Flex column */
+.et-col { display: flex; flex-direction: column; }
+
+/* Hide below breakpoint */
+@media (max-width: 639px) {
+  .hide-mobile { display: none !important; }
+}
+@media (min-width: 640px) {
+  .show-mobile-only { display: none !important; }
+}
